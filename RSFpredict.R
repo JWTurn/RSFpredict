@@ -15,9 +15,12 @@ defineModule(sim, list(
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("NEWS.md", "README.md", "RSFpredict.Rmd"),
-  reqdPkgs = list("PredictiveEcology/SpaDES.core@development (>= 3.0.3.9003)", "ggplot2", 'glmmTMB'),
+  reqdPkgs = list("PredictiveEcology/SpaDES.core@development (>= 3.0.3.9003)", "reproducible", "ggplot2", "glmmTMB",
+                  'tidyterra', 'terra', 'viridis', 'ggthemes'),
   parameters = bindrows(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
+    defineParameter("numBins", "integer", 10, NA, NA,
+                    "number of bins for RSF, default = 10"),
     defineParameter(".plots", "character", "screen", NA, NA,
                     "Used by Plots function, which can be optionally used here"),
     defineParameter(".plotInitialTime", "numeric", start(sim), NA, NA,
@@ -41,12 +44,16 @@ defineModule(sim, list(
     #expectsInput("objectName", "objectClass", "input object description", sourceURL, ...),
     expectsInput(objectName = 'model', objectClass = 'glmmTMB',
                  desc = 'RSF model'),
+    expectsInput(objectName = 'studyArea', objectClass = 'spatVector',
+                 desc = 'unbuffered study area'),
     expectsInput(objectName = 'landStack', objectClass = 'spatRaster',
                  desc = 'stack of raster data to predict across')
   ),
   outputObjects = bindrows(
     #createsOutput("objectName", "objectClass", "output object description", ...),
-    createsOutput(objectName = NA, objectClass = NA, desc = NA)
+    createsOutput(objectName = "pred", objectClass = 'spatRaster', desc = 'raw predicted RSF'),
+    createsOutput(objectName = "binMap", objectClass = 'spatRaster', desc = 'binned predicted RSF'),
+    createsOutput(objectName = "p.rsf", objectClass = 'ggplot', desc = 'ggplot of RSF')
   )
 ))
 
@@ -56,18 +63,34 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
     init = {
       ### check for more detailed object dependencies:
       ### (use `checkObject` or similar)
-browser()
-      # do stuff for this event
-      land.df <- as.data.frame(sim$landStack)
 
-      pred <- predict(sim$model,
-                      newdata = land.df,#[!is.na(Covar.brick.values$DEM),],
-                      allow.new.levels=TRUE)
+      sim$pred <- terra::predict(sim$landStack, sim$model, type = "response", re.form = NA) |>
+        Cache()
+        # predict(sim$model,
+        #               newdata = sim$landStack,#[!is.na(Covar.brick.values$DEM),],
+        #               allow.new.levels=TRUE)
+      pred.mask <- terra::mask(sim$pred, sim$studyArea)
+      # TODO get rid of weird extremes
+      # quantPred <- global(pred.mask, quantile, probs = c(0.9), na.rm = T)
+      # predClmp <- terra::clamp(pred.mask, upper = quantPred[[1]])
+      breaks <- terra::global(pred.mask, quantile, na.rm = T, probs = seq(0,1,1/Par$numBins))
+      v.breaks <- t(breaks)
+      sim$binMap <- terra::classify(pred.mask, v.breaks, include.lowest=TRUE, brackets=TRUE)
+
+      sim$p.rsf <- ggplot() +
+        geom_spatraster(data = as.numeric(sim$binMap, show.legend = T)) +
+        scale_fill_viridis(option = 'viridis', na.value = NA, name = 'Intensity of Selection') +
+        theme_minimal() +
+        labs(x = NULL, y = NULL)
+      sim$p.rsf
+
+      outPath <- outputPath(sim)
+      ggsave(plot = sim$p.rsf, filename = file.path(outPath, 'map.png'))
 
 
       # schedule future event(s)
-      sim <- scheduleEvent(sim, P(sim)$.plotInitialTime, "RSFpredict", "plot")
-      sim <- scheduleEvent(sim, P(sim)$.saveInitialTime, "RSFpredict", "save")
+      # sim <- scheduleEvent(sim, P(sim)$.plotInitialTime, "RSFpredict", "plot")
+      # sim <- scheduleEvent(sim, P(sim)$.saveInitialTime, "RSFpredict", "save")
     },
     plot = {
       # ! ----- EDIT BELOW ----- ! #
