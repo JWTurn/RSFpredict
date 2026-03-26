@@ -8,14 +8,14 @@ defineModule(sim, list(
   name = "RSFpredict",
   description = "",
   keywords = "",
-  authors = structure(list(list(given = c("First", "Middle"), family = "Last", role = c("aut", "cre"), email = "email@example.com", comment = NULL)), class = "person"),
+  authors = structure(list(list(given = c("Julie", "W"), family = "Turner", role = c("aut", "cre"), email = "julwturner@gmail.com", comment = NULL)), class = "person"),
   childModules = character(0),
   version = list(RSFpredict = "0.0.0.9000"),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("NEWS.md", "README.md", "RSFpredict.Rmd"),
-  reqdPkgs = list("PredictiveEcology/SpaDES.core@development (>= 3.0.3.9003)", "ggplot2"),
+  reqdPkgs = list("PredictiveEcology/SpaDES.core@development (>= 3.0.3.9003)", "ggplot2", 'glmmTMB'),
   parameters = bindrows(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter(".plots", "character", "screen", NA, NA,
@@ -39,7 +39,10 @@ defineModule(sim, list(
   ),
   inputObjects = bindrows(
     #expectsInput("objectName", "objectClass", "input object description", sourceURL, ...),
-    expectsInput(objectName = NA, objectClass = NA, desc = NA, sourceURL = NA)
+    expectsInput(objectName = 'model', objectClass = 'glmmTMB',
+                 desc = 'RSF model'),
+    expectsInput(objectName = 'landStack', objectClass = 'spatRaster',
+                 desc = 'stack of raster data to predict across')
   ),
   outputObjects = bindrows(
     #createsOutput("objectName", "objectClass", "output object description", ...),
@@ -53,9 +56,14 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
     init = {
       ### check for more detailed object dependencies:
       ### (use `checkObject` or similar)
-
+browser()
       # do stuff for this event
-      sim <- Init(sim)
+      land.df <- as.data.frame(sim$landStack)
+
+      pred <- predict(sim$model,
+                      newdata = land.df,#[!is.na(Covar.brick.values$DEM),],
+                      allow.new.levels=TRUE)
+
 
       # schedule future event(s)
       sim <- scheduleEvent(sim, P(sim)$.plotInitialTime, "RSFpredict", "plot")
