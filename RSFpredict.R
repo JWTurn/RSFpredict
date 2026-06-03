@@ -144,7 +144,7 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
 
       thisYear <- as.integer(time(sim))
       key <- paste0("year", thisYear)
-      message(paste0("Simulating landscape for ", thisYear)
+      message(paste0("Simulating landscape for ", thisYear))
 
       template <- sim$rasterToMatch
 
@@ -186,7 +186,7 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
 
       # Dynamic timeSinceFire from scfmSpread
       tsf <- reproducible::postProcess(sim$timeSinceFire, to = templateCoarse)
-      tsf[is.na(tsf)] <- P(sim)$ts_else + (thisYear - 2020)) #TODO this is hardcoded for now, now grab start time?
+      tsf[is.na(tsf)] <- P(sim)$ts_else + (thisYear - 2020) #TODO this is hardcoded for now, now grab start time?
 
       message("Updated timeSinceFire using scfm for RSF")
 
@@ -211,7 +211,7 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
 
 
       # save layers
-      outDir <- reproducible::checkPath(file.path(outputPath(sim), paste0(Par$.studyAreaName, '_', 'sims'), create = T)
+      outDir <- reproducible::checkPath(file.path(outputPath(sim), paste0(Par$.studyAreaName, '_', 'sims')), create = T)
 
 
         terra::writeRaster(sim$simLand[[key]], file.path(outDir, paste0("mapLayers_", Par$.studyAreaName, "_", key, ".tif")), overwrite = TRUE)
