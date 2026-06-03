@@ -75,7 +75,13 @@ defineModule(sim, list(
   outputObjects = bindrows(
     #createsOutput("objectName", "objectClass", "output object description", ...),
     createsOutput(objectName = "pred", objectClass = 'spatRaster', desc = 'raw predicted RSF'),
-    createsOutput(objectName = "binMap", objectClass = 'spatRaster', desc = 'binned predicted RSF')
+    createsOutput(objectName = "binMap", objectClass = 'spatRaster', desc = 'binned predicted RSF'),
+    createsOutput("timeSinceFire", "SpatRaster",
+                  "If dynamic, map of time since last burn used in model - with pixels that never burn receiving NA"),
+    createsOutput(objectName = "simLand", objectClass = 'spatRaster', desc = 'simulated landcover layers for RSF'),
+    createsOutput(objectName = "simPred", objectClass = 'spatRaster', desc = 'simulated raw predicted RSF'),
+    createsOutput(objectName = "simBinMap", objectClass = 'spatRaster', desc = 'binned predicted RSF')
+
 
   )
 ))
@@ -136,6 +142,12 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
       #
       # outPath <- outputPath(sim)
       # ggsave(plot = p.rsf, filename = file.path(outPath, 'map.png'))
+
+      if (Par$simulationProcess == "dynamic") {
+
+          sim$timeSinceFire <- postProcess(sim$modelLand$timeSinceFire,
+                                           to = sim$rasterToMatch)
+        }
       #
 
     },
