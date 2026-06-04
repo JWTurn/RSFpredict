@@ -120,7 +120,18 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
 
       message("Building baseline RSF map")
 
-      sim$pred <- terra::predict(sim$landStack, sim$model, type = "response", re.form = NA) |>
+      modLand <- sim$modelLand
+      modLand$timeSinceFire[is.na(modLand$timeSinceFire)] <- P(sim)$ts_else
+
+      if(!is.null(weights(sim$model))) {
+        # make a dummy weight
+        w <- sim$modelLand[[1]]
+        w[] <- 1
+        names(w) <- 'w'
+        modLand <- c(modLand, w)
+      }
+
+      sim$pred <- terra::predict(modLand, sim$model, type = "response", re.form = NA) |>
         Cache()
       # predict(sim$model,
       #               newdata = sim$landStack,#[!is.na(Covar.brick.values$DEM),],
@@ -143,11 +154,11 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
       # outPath <- outputPath(sim)
       # ggsave(plot = p.rsf, filename = file.path(outPath, 'map.png'))
 
-      if (Par$simulationProcess == "dynamic") {
-
-          sim$timeSinceFire <- postProcess(sim$modelLand$timeSinceFire,
-                                           to = sim$rasterToMatch)
-        }
+      # if (Par$simulationProcess == "dynamic") {
+      #
+      #     sim$timeSinceFire <- postProcess(sim$modelLand$timeSinceFire,
+      #                                      to = sim$rasterToMatch)
+      #   }
       #
 
     },
@@ -236,16 +247,26 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
       thisYear <- as.integer(time(sim))
       key <- paste0("year", thisYear)
       message(paste0("Calculating simulated RSF map for: ", thisYear))
-      if (is.null(sim$simEnv[[key]]))
-        stop("Missing sim$simEnv[['", key, "']]. Did simLayers run first?")
+      if (is.null(sim$simLand[[key]]))
+        stop("Missing sim$simLand[['", key, "']]. Did simLayers run first?")
 
 
       outDir <- reproducible::checkPath(file.path(outputPath(sim), paste0(Par$.studyAreaName), '_', 'sims'), create = T)
 
-      sim$simPred[[key]] <- terra::predict(sim$landStack, sim$model, type = "response", re.form = NA) |>
+      modLand <- sim$simLand[[key]]
+
+      if(!is.null(weights(sim$model))) {
+        # make a dummy weight
+        w <- modLand[[1]]
+        w[] <- 1
+        names(w) <- 'w'
+        modLand <- c(modLand, w)
+      }
+
+      sim$simPred[[key]] <- terra::predict(modLand, sim$model, type = "response", re.form = NA) |>
         Cache()
 
-      pred.mask <- terra::mask(sim$simPred, sim$studyArea)
+      pred.mask <- terra::mask(sim$simPred[[key]], sim$studyArea)
       # TODO get rid of weird extremes
       # quantPred <- global(pred.mask, quantile, probs = c(0.9), na.rm = T)
       # predClmp <- terra::clamp(pred.mask, upper = quantPred[[1]])
