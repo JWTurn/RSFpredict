@@ -136,7 +136,7 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
       # predict(sim$model,
       #               newdata = sim$landStack,#[!is.na(Covar.brick.values$DEM),],
       #               allow.new.levels=TRUE)
-      pred.mask <- terra::mask(sim$pred, sim$studyArea)
+      pred.mask <- reproducible::postProcess(sim$pred, sim$studyArea)
       # TODO get rid of weird extremes
       # quantPred <- global(pred.mask, quantile, probs = c(0.9), na.rm = T)
       # predClmp <- terra::clamp(pred.mask, upper = quantPred[[1]])
@@ -266,7 +266,7 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
       sim$simPred[[key]] <- terra::predict(modLand, sim$model, type = "response", re.form = NA) |>
         Cache()
 
-      pred.mask <- terra::mask(sim$simPred[[key]], sim$studyArea)
+      pred.mask <- reproducible::postProcess(sim$simPred[[key]], sim$studyArea)
       # TODO get rid of weird extremes
       # quantPred <- global(pred.mask, quantile, probs = c(0.9), na.rm = T)
       # predClmp <- terra::clamp(pred.mask, upper = quantPred[[1]])
