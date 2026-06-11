@@ -274,12 +274,13 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
       v.breaks <- t(breaks)
       sim$simBinMap[[key]] <- terra::classify(pred.mask, v.breaks, include.lowest=TRUE, brackets=TRUE)
 
+      fnForPredMask <- file.path(mod$outDir, paste0("rsfMap", Par$.studyAreaName, '_', key))
+      fnForSimBinMap <- file.path(mod$outDir, paste0("rsfBinMap_", Par$.studyAreaName, '_', key))
+      Plots(pred.mask, filename = paste0(fnForPredMask, ".png"))
+      Plots(sim$simBinMap[[key]], filename = paste0(fnForSimBinMap, ".png"))
 
-        terra::writeRaster(pred.mask, file.path(outDir, paste0("rsfMap", Par$.studyAreaName, '_', key, '.tif')), overwrite = TRUE)
-        terra::writeRaster(sim$simBinMap[[key]], file.path(outDir, paste0("rsfBinMap_", Par$.studyAreaName, '_', key, '.tif')), overwrite = TRUE)
-
-
-
+      terra::writeRaster(pred.mask, paste0(fnForPredMask, '.tif'), overwrite = TRUE)
+      terra::writeRaster(sim$simBinMap[[key]], paste0(fnForSimBinMap, ".tif"), overwrite = TRUE)
 
       message(paste0("Finished creating RSF for: ", thisYear))
       message(paste0("Outputs saved to: ", outDir))
