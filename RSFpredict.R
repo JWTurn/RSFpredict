@@ -45,7 +45,7 @@ defineModule(sim, list(
                     "This describes the simulation time interval between save events."),
     defineParameter(".studyAreaName", "character", NA, NA, NA,
                     "Human-readable name for the study area used - e.g., a hash of the study",
-                          "area obtained using `reproducible::studyAreaName()`"),
+                    "area obtained using `reproducible::studyAreaName()`"),
     ## .seed is optional: `list('init' = 123)` will `set.seed(123)` for the `init` event only.
     defineParameter(".seed", "list", list(), NA, NA,
                     "Named list of seeds to use for each event (names)."),
@@ -184,23 +184,23 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
       ft <- reclassForest$`forest type`
 
 
-        # Needleleaf
-        needle_mask <- terra::classify(
-          ft, rcl = matrix(c(210, 1), ncol = 2, byrow = TRUE), others = 0
-        )
-        prop_needleleaf <- terra::resample(needle_mask, template, method = "average")
-        names(prop_needleleaf) <- "prop_needleleaf"
+      # Needleleaf
+      needle_mask <- terra::classify(
+        ft, rcl = matrix(c(210, 1), ncol = 2, byrow = TRUE), others = 0
+      )
+      prop_needleleaf <- terra::resample(needle_mask, template, method = "average")
+      names(prop_needleleaf) <- "prop_needleleaf"
 
-        # Mixedforest
-        mixed_mask <- terra::classify(
-          ft, rcl = matrix(c(220, 1, 230, 1), ncol = 2, byrow = TRUE),
-          others = 0
-        )
-        prop_mixedforest <- terra::resample(mixed_mask, template, method = "average")
-        names(prop_mixedforest) <- "prop_mixedforest"
+      # Mixedforest
+      mixed_mask <- terra::classify(
+        ft, rcl = matrix(c(220, 1, 230, 1), ncol = 2, byrow = TRUE),
+        others = 0
+      )
+      prop_mixedforest <- terra::resample(mixed_mask, template, method = "average")
+      names(prop_mixedforest) <- "prop_mixedforest"
 
-        # scale up to RSF res
-        forests <- reproducible::postProcess(c(prop_needleleaf, prop_mixedforest), templateCoarse, method = 'average')
+      # scale up to RSF res
+      forests <- reproducible::postProcess(c(prop_needleleaf, prop_mixedforest), templateCoarse, method = 'average')
 
 
       message("Complated reclassifying forest layers")
@@ -313,7 +313,7 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
   # ! ----- EDIT BELOW ----- ! #
   if (!suppliedElsewhere("model", sim)) {
 
-      stop("RSF model not provided")
+    stop("RSF model not provided")
 
   }
 
