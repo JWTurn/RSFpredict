@@ -322,8 +322,4 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
   return(invisible(sim))
 }
 
-ggplotFn <- function(data, ...) {
-  ggplot2::ggplot(data, ggplot2::aes(TheSample)) +
-    ggplot2::geom_histogram(...)
-}
 
