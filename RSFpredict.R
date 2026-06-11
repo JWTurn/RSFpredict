@@ -131,8 +131,7 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
         modLand <- c(modLand, w)
       }
 
-      sim$pred <- terra::predict(modLand, sim$model, type = "response", re.form = NA) |>
-        Cache()
+      sim$pred <- terra::predict(modLand, sim$model, type = "response", re.form = NA)
       # predict(sim$model,
       #               newdata = sim$landStack,#[!is.na(Covar.brick.values$DEM),],
       #               allow.new.levels=TRUE)
