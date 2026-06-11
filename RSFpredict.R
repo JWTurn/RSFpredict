@@ -217,8 +217,6 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
 
       tsRasts <- tsf
 
-
-
       # Bundle bundle updates
       sim$simLand[[key]] <- c(forests, tsRasts)
       # simLand needs to be exported to workflowOutputs for normalization model
@@ -234,10 +232,10 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
 
 
       # save layers
-      outDir <- reproducible::checkPath(file.path(outputPath(sim), paste0(Par$.studyAreaName, '_', 'sims')), create = T)
+      mod$outDir <- reproducible::checkPath(file.path(outputPath(sim), paste0(Par$.studyAreaName, '_', 'sims')), create = T)
 
 
-        terra::writeRaster(sim$simLand[[key]], file.path(outDir, paste0("mapLayers_", Par$.studyAreaName, "_", key, ".tif")), overwrite = TRUE)
+      terra::writeRaster(sim$simLand[[key]], file.path(mod$outDir, paste0("mapLayers_", Par$.studyAreaName, "_", key, ".tif")), overwrite = TRUE)
 
 
       sim <- scheduleEvent(sim, time(sim) + P(sim)$predictionInterval, "RSFpredict", "simLayers")
@@ -251,7 +249,7 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
         stop("Missing sim$simLand[['", key, "']]. Did simLayers run first?")
 
 
-      outDir <- reproducible::checkPath(file.path(outputPath(sim), paste0(Par$.studyAreaName), '_', 'sims'), create = T)
+      # outDir <- reproducible::checkPath(file.path(outputPath(sim), paste0(Par$.studyAreaName), '_', 'sims'), create = T)
 
       modLand <- sim$simLand[[key]]
 
@@ -283,7 +281,7 @@ doEvent.RSFpredict = function(sim, eventTime, eventType) {
       terra::writeRaster(sim$simBinMap[[key]], paste0(fnForSimBinMap, ".tif"), overwrite = TRUE)
 
       message(paste0("Finished creating RSF for: ", thisYear))
-      message(paste0("Outputs saved to: ", outDir))
+      message(paste0("Outputs saved to: ", mod$outDir))
       sim <- scheduleEvent(sim, time(sim) + P(sim)$predictionInterval, "RSFpredict", "simRSFmap")
     },
 
